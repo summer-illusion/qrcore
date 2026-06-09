@@ -16,7 +16,11 @@ function fail(message: string): never {
   process.exit(1)
 }
 
-function validateChoice<T extends string>(value: string | undefined, choices: readonly T[], label: string): T | undefined {
+function validateChoice<T extends string>(
+  value: string | undefined,
+  choices: readonly T[],
+  label: string,
+): T | undefined {
   if (typeof value === 'undefined') return undefined
   if ((choices as readonly string[]).includes(value)) return value as T
   fail(`${label} must be one of: ${choices.join(', ')}`)
@@ -24,7 +28,11 @@ function validateChoice<T extends string>(value: string | undefined, choices: re
 
 function buildOptions(flags: ParsedFlags): QRRenderOptions {
   const type = validateChoice(flags.type, outputTypes, 'Output type')
-  const errorCorrectionLevel = validateChoice(flags.error, errorLevels, 'Error correction level')
+  const errorCorrectionLevel = validateChoice(
+    flags.error,
+    errorLevels,
+    'Error correction level',
+  )
 
   return {
     version: flags.qversion,
@@ -71,7 +79,8 @@ async function main() {
     version: pkg.version,
     parameters: ['[input...]'],
     help: {
-      description: 'Generate QR codes in the terminal or save png/svg/utf8 output to a file.',
+      description:
+        'Generate QR codes in the terminal or save png/svg/utf8 output to a file.',
       examples: [
         '"some text"',
         '-o out.png "some text"',
@@ -142,7 +151,10 @@ async function main() {
     },
   })
 
-  if (typeof argv.flags.width !== 'undefined' && typeof argv.flags.scale !== 'undefined') {
+  if (
+    typeof argv.flags.width !== 'undefined' &&
+    typeof argv.flags.scale !== 'undefined'
+  ) {
     fail('Use either --width or --scale, not both')
   }
 

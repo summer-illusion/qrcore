@@ -22,7 +22,9 @@ describe('qrcore', () => {
   })
 
   it('keeps the default node-qrcode compatible API', async () => {
-    const terminal = await qrcode.toString('default export', { type: 'terminal' })
+    const terminal = await qrcode.toString('default export', {
+      type: 'terminal',
+    })
 
     expect(terminal.length).toBeGreaterThan(0)
   })
@@ -41,8 +43,13 @@ describe('qrcore', () => {
       mode: { id: string }
     }>
 
-    expect(segments.map((segment) => segment.mode.id)).toEqual(['Kanji', 'Byte'])
+    expect(segments.map((segment) => segment.mode.id)).toEqual([
+      'Kanji',
+      'Byte',
+    ])
     expect(segments[0].data).toBe('漢字かな')
-    expect(Array.from(segments[1].data as Uint8Array)).toEqual([65, 240, 159, 152, 128])
+    expect(Array.from(segments[1].data as Uint8Array)).toEqual([
+      65, 240, 159, 152, 128,
+    ])
   })
 })

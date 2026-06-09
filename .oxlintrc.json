@@ -1,0 +1,6 @@
+{
+  "ignorePatterns": ["dist/**", "node_modules/**", "src/vendor/**"],
+  "rules": {
+    "no-console": "off"
+  }
+}

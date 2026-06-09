@@ -24,7 +24,14 @@ assert.equal(buffer.subarray(0, 8).toString('hex'), '89504e470d0a1a0a')
 const dir = await mkdtemp(join(tmpdir(), 'qrcore-'))
 try {
   const output = join(dir, 'cli.svg')
-  const { stdout } = await execFileAsync(process.execPath, ['dist/cli.mjs', '-t', 'svg', '-o', output, 'cli smoke'])
+  const { stdout } = await execFileAsync(process.execPath, [
+    'dist/cli.mjs',
+    '-t',
+    'svg',
+    '-o',
+    output,
+    'cli smoke',
+  ])
   assert.match(stdout, /saved qrcode to:/)
 
   const cliSvg = await readFile(output, 'utf8')

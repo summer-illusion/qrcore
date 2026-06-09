@@ -27,9 +27,27 @@
   "files": [
     "dist"
   ],
+  "lint-staged": {
+    "*.ts": [
+      "oxlint --fix",
+      "prettier --write"
+    ],
+    "*.{mts,cts,js,mjs,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
   "scripts": {
     "build": "tsdown",
     "check": "tsc --noEmit",
+    "ci": "npm run lint && npm run check && npm run test && npm run build && npm run smoke && npm run pack:dry",
+    "commit-push": "node scripts/commit-push.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "pack:dry": "npm pack --dry-run",
+    "prepare": "husky",
+    "release": "node scripts/bump-version.mjs",
     "test": "vitest run",
     "smoke": "node test/smoke.mjs",
     "prepack": "npm run build && npm run test && npm run smoke"
@@ -40,7 +58,13 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@types/node": "^24.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^16.4.0",
+    "oxlint": "^1.65.0",
+    "prettier": "^3.8.3",
     "tsdown": "^0.22.2",
     "typescript": "~6.0.2",
     "vitest": "^4.0.0"

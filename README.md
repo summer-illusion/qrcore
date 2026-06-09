@@ -45,6 +45,24 @@ The CLI uses `cleye` instead of `yargs`, while keeping the familiar `node-qrcode
 - `-l, --lightcolor`, `-d, --darkcolor`
 - `--small`, `-i, --inverse`
 
+## Development
+
+```sh
+npm ci
+npm run ci
+```
+
+The local and CI quality gate runs linting, type checking, tests, build, smoke checks for ESM/CJS/CLI output, and `npm pack --dry-run`.
+
+Release helpers:
+
+```sh
+npm run release -- patch
+git push origin main --tags
+```
+
+Publishing is handled by the manual `Publish Package` GitHub Actions workflow. It reruns the full gate before `npm publish --provenance`.
+
 ## Upstream Lineage
 
 The QR encoder and renderers are vendored from [`soldair/node-qrcode`](https://github.com/soldair/node-qrcode) at commit `3848ed2` (`1.5.4`) under `src/vendor/node-qrcode`.

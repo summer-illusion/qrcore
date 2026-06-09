@@ -5,7 +5,13 @@ const qrcode = require('./vendor/node-qrcode/lib/server.cjs') as QRCodeModule
 
 export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H'
 export type QRMode = 'numeric' | 'alphanumeric' | 'byte' | 'kanji'
-export type OutputType = 'png' | 'svg' | 'utf8' | 'terminal' | 'txt' | 'image/png'
+export type OutputType =
+  | 'png'
+  | 'svg'
+  | 'utf8'
+  | 'terminal'
+  | 'txt'
+  | 'image/png'
 
 export interface QRSegment {
   data: string | Uint8Array | number[]
@@ -62,24 +68,53 @@ export interface QRCodeModule {
 
   toString(text: QRInput, options?: QRRenderOptions): Promise<string>
   toString(text: QRInput, callback: QRCallback<string>): void
-  toString(text: QRInput, options: QRRenderOptions, callback: QRCallback<string>): void
+  toString(
+    text: QRInput,
+    options: QRRenderOptions,
+    callback: QRCallback<string>,
+  ): void
 
   toDataURL(text: QRInput, options?: QRRenderOptions): Promise<string>
   toDataURL(text: QRInput, callback: QRCallback<string>): void
-  toDataURL(text: QRInput, options: QRRenderOptions, callback: QRCallback<string>): void
+  toDataURL(
+    text: QRInput,
+    options: QRRenderOptions,
+    callback: QRCallback<string>,
+  ): void
 
   toBuffer(text: QRInput, options?: QRRenderOptions): Promise<Buffer>
   toBuffer(text: QRInput, callback: QRCallback<Buffer>): void
-  toBuffer(text: QRInput, options: QRRenderOptions, callback: QRCallback<Buffer>): void
+  toBuffer(
+    text: QRInput,
+    options: QRRenderOptions,
+    callback: QRCallback<Buffer>,
+  ): void
 
   toFile(path: string, text: QRInput, options?: QRRenderOptions): Promise<void>
   toFile(path: string, text: QRInput, callback: QREmptyCallback): void
-  toFile(path: string, text: QRInput, options: QRRenderOptions, callback: QREmptyCallback): void
+  toFile(
+    path: string,
+    text: QRInput,
+    options: QRRenderOptions,
+    callback: QREmptyCallback,
+  ): void
 
-  toFileStream(stream: NodeJS.WritableStream, text: QRInput, options?: QRRenderOptions): void
+  toFileStream(
+    stream: NodeJS.WritableStream,
+    text: QRInput,
+    options?: QRRenderOptions,
+  ): void
 
-  toCanvas(canvas: HTMLCanvasElement, text: QRInput, options?: QRRenderOptions): Promise<HTMLCanvasElement>
-  toCanvas(canvas: HTMLCanvasElement, text: QRInput, callback: QRCallback<HTMLCanvasElement>): void
+  toCanvas(
+    canvas: HTMLCanvasElement,
+    text: QRInput,
+    options?: QRRenderOptions,
+  ): Promise<HTMLCanvasElement>
+  toCanvas(
+    canvas: HTMLCanvasElement,
+    text: QRInput,
+    callback: QRCallback<HTMLCanvasElement>,
+  ): void
   toCanvas(
     canvas: HTMLCanvasElement,
     text: QRInput,
