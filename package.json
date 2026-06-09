@@ -1,0 +1,51 @@
+{
+  "name": "qrcore",
+  "version": "0.1.0",
+  "description": "Modern QR Code generator with typed ESM, CommonJS, and CLI support.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "bin": {
+    "qrcore": "./dist/cli.mjs",
+    "qrcode": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "smoke": "node test/smoke.mjs",
+    "prepack": "npm run build && npm run test && npm run smoke"
+  },
+  "dependencies": {
+    "cleye": "^2.6.0",
+    "dijkstrajs": "^1.0.3",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsdown": "^0.22.2",
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
