@@ -1,6 +1,6 @@
 {
   "name": "qrcore",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Modern QR Code generator with typed ESM, CommonJS, and CLI support.",
   "type": "module",
   "license": "MIT",
