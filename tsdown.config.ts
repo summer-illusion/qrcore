@@ -28,7 +28,6 @@ export default defineConfig([
     exports: false,
     platform: 'node',
     target: 'node18',
-    shims: true,
     sourcemap: true,
   },
 ])
