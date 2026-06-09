@@ -61,6 +61,8 @@ npm run release -- patch
 git push origin main --tags
 ```
 
+The `Auto Bump Version` GitHub Actions workflow bumps the main branch version after non-bot pushes to `main`, refreshes `package-lock.json`, and prepends `CHANGELOG.md`.
+
 Publishing is handled by the manual `Publish Package` GitHub Actions workflow. It reruns the full gate before `npm publish --provenance`.
 
 ## Upstream Lineage

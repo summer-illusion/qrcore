@@ -1,5 +1,6 @@
-import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
+
+import { run } from './script-utils.mjs'
 
 const releaseType = process.argv[2] ?? 'patch'
 const allowedReleaseTypes = new Set([
@@ -19,15 +20,8 @@ if (!allowedReleaseTypes.has(releaseType)) {
   process.exit(1)
 }
 
-function run(command, args) {
-  return execFileSync(command, args, {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'inherit'],
-  }).trim()
-}
-
 function hasChanges() {
-  return run('git', ['status', '--porcelain']).length > 0
+  return run('git', ['status', '--porcelain'], { capture: true }).length > 0
 }
 
 if (hasChanges()) {
@@ -35,7 +29,13 @@ if (hasChanges()) {
   process.exit(1)
 }
 
-const newVersion = run('npm', ['version', releaseType, '--no-git-tag-version'])
+const newVersion = run(
+  'npm',
+  ['version', releaseType, '--no-git-tag-version'],
+  {
+    capture: true,
+  },
+)
 const version = newVersion.replace(/^v/, '')
 const today = new Date().toISOString().slice(0, 10)
 const changelogPath = 'CHANGELOG.md'

@@ -1,17 +1,10 @@
-import { execFileSync } from 'node:child_process'
+import { run } from './script-utils.mjs'
 
 const message = process.argv.slice(2).join(' ').trim()
 
 if (!message) {
   console.error('Usage: npm run commit-push -- "chore: update automation"')
   process.exit(1)
-}
-
-function run(command, args, options = {}) {
-  return execFileSync(command, args, {
-    encoding: 'utf8',
-    stdio: options.capture ? ['ignore', 'pipe', 'inherit'] : 'inherit',
-  })?.trim()
 }
 
 const branch = run('git', ['branch', '--show-current'], { capture: true })

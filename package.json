@@ -4,6 +4,10 @@
   "description": "Modern QR Code generator with typed ESM, CommonJS, and CLI support.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/summer-illusion/qrcore.git"
+  },
   "sideEffects": false,
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -43,10 +47,12 @@
     "commit-push": "node scripts/commit-push.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "changelog": "node scripts/generate-changelog.mjs",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "pack:dry": "npm pack --dry-run",
     "prepare": "husky",
+    "version:bump": "node scripts/auto-bump-version.mjs",
     "release": "node scripts/bump-version.mjs",
     "test": "vitest run",
     "smoke": "node test/smoke.mjs",
