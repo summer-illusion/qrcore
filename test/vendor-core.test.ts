@@ -21,6 +21,7 @@ import * as MaskPattern from '../src/vendor/node-qrcode/lib/core/mask-pattern.ts
 import * as Mode from '../src/vendor/node-qrcode/lib/core/mode.ts'
 import NumericData from '../src/vendor/node-qrcode/lib/core/numeric-data.ts'
 import * as Polynomial from '../src/vendor/node-qrcode/lib/core/polynomial.ts'
+import * as QRCodeCore from '../src/vendor/node-qrcode/lib/core/qrcode.ts'
 import ReedSolomonEncoder from '../src/vendor/node-qrcode/lib/core/reed-solomon-encoder.ts'
 import * as Regex from '../src/vendor/node-qrcode/lib/core/regex.ts'
 import * as Segments from '../src/vendor/node-qrcode/lib/core/segments.ts'
@@ -35,6 +36,9 @@ const ModeCjs =
   require('../src/vendor/node-qrcode/lib/core/mode.cjs') as typeof Mode
 const UtilsCjs =
   require('../src/vendor/node-qrcode/lib/core/utils.cjs') as typeof Utils
+const toSJIS = require('../src/vendor/node-qrcode/helper/to-sjis.cjs') as (
+  kanji: string,
+) => number
 const testToSJIS = (kanji: string) =>
   (
     ({
@@ -72,6 +76,23 @@ function segmentSummary(
     length: segment.getLength(),
     bits: segment.getBitsLength(),
   }))
+}
+
+function qrSummary(data: {
+  version: number
+  maskPattern: number
+  errorCorrectionLevel: { bit: number }
+  modules: { size: number; data: ArrayLike<number> }
+  segments: Parameters<typeof segmentSummary>[0]
+}) {
+  return {
+    version: data.version,
+    maskPattern: data.maskPattern,
+    ecl: data.errorCorrectionLevel.bit,
+    size: data.modules.size,
+    dark: Array.from(data.modules.data).reduce((sum, value) => sum + value, 0),
+    segments: segmentSummary(data.segments),
+  }
 }
 
 describe('migrated node-qrcode core modules', () => {
@@ -239,6 +260,45 @@ describe('migrated node-qrcode core modules', () => {
     ])
   })
 
+  it('keeps QR core symbol generation compatible', () => {
+    expect(
+      qrSummary(QRCodeCore.create('qrcore', { errorCorrectionLevel: 'M' })),
+    ).toEqual({
+      version: 1,
+      maskPattern: 4,
+      ecl: 0,
+      size: 21,
+      dark: 226,
+      segments: [
+        {
+          mode: 'Byte',
+          data: [113, 114, 99, 111, 114, 101],
+          length: 6,
+          bits: 48,
+        },
+      ],
+    })
+
+    expect(
+      qrSummary(QRCodeCore.create('漢字かなA😀', { toSJISFunc: toSJIS })),
+    ).toEqual({
+      version: 1,
+      maskPattern: 0,
+      ecl: 0,
+      size: 21,
+      dark: 218,
+      segments: [
+        { mode: 'Kanji', data: '漢字かな', length: 4, bits: 52 },
+        {
+          mode: 'Byte',
+          data: [65, 240, 159, 152, 128],
+          length: 5,
+          bits: 40,
+        },
+      ],
+    })
+  })
+
   it('keeps polynomial and reed-solomon math stable', () => {
     expect(
       Array.from(
@@ -317,6 +377,7 @@ describe('migrated node-qrcode core modules', () => {
     const PolynomialCjs = require('../src/vendor/node-qrcode/lib/core/polynomial.cjs')
     const ReedSolomonEncoderCjs = require('../src/vendor/node-qrcode/lib/core/reed-solomon-encoder.cjs')
     const MaskPatternCjs = require('../src/vendor/node-qrcode/lib/core/mask-pattern.cjs')
+    const QRCodeCoreCjs = require('../src/vendor/node-qrcode/lib/core/qrcode.cjs')
     const SegmentsCjs = require('../src/vendor/node-qrcode/lib/core/segments.cjs')
     const VersionCjs = require('../src/vendor/node-qrcode/lib/core/version.cjs')
     const VersionCheck = require('../src/vendor/node-qrcode/lib/core/version-check.cjs')
@@ -346,6 +407,10 @@ describe('migrated node-qrcode core modules', () => {
         bits: 48,
       },
     ])
+    expect(qrSummary(QRCodeCoreCjs.create('qrcore'))).toMatchObject({
+      version: 1,
+      size: 21,
+    })
     expect(VersionCjs.getEncodedBits(7)).toBe(31892)
     expect(VersionCheck.isValid(40)).toBe(true)
     expect(new CjsBitBuffer().getLengthInBits()).toBe(0)

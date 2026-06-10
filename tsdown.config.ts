@@ -54,6 +54,8 @@ const migratedVendorCoreEntries = {
     'src/vendor/node-qrcode/lib/core/numeric-data.ts',
   'vendor/node-qrcode/lib/core/polynomial.impl':
     'src/vendor/node-qrcode/lib/core/polynomial.ts',
+  'vendor/node-qrcode/lib/core/qrcode.impl':
+    'src/vendor/node-qrcode/lib/core/qrcode.ts',
   'vendor/node-qrcode/lib/core/reed-solomon-encoder.impl':
     'src/vendor/node-qrcode/lib/core/reed-solomon-encoder.ts',
   'vendor/node-qrcode/lib/core/segments.impl':
