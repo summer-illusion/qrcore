@@ -1,12 +1,12 @@
-/*
-*copyright Ryan Day 2012
-*
-* Licensed under the MIT license:
-*   http://www.opensource.org/licenses/mit-license.php
-*
-* this is the main server side application file for node-qrcode.
-* these exports use serverside canvas api methods for file IO and buffers
-*
-*/
+function loadImplementation() {
+  try {
+    return require('./index.ts')
+  } catch (error) {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') throw error
+    return require('./index.impl.cjs')
+  }
+}
 
-module.exports = require('./server.cjs')
+const implementation = loadImplementation()
+
+module.exports = implementation.default || implementation

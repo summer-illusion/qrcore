@@ -70,6 +70,40 @@ const migratedVendorCoreEntries = {
     'src/vendor/node-qrcode/lib/core/regex.ts',
 }
 
+const migratedVendorRendererEntries = {
+  'vendor/node-qrcode/lib/renderer/canvas.impl':
+    'src/vendor/node-qrcode/lib/renderer/canvas.ts',
+  'vendor/node-qrcode/lib/renderer/png.impl':
+    'src/vendor/node-qrcode/lib/renderer/png.ts',
+  'vendor/node-qrcode/lib/renderer/svg-tag.impl':
+    'src/vendor/node-qrcode/lib/renderer/svg-tag.ts',
+  'vendor/node-qrcode/lib/renderer/svg.impl':
+    'src/vendor/node-qrcode/lib/renderer/svg.ts',
+  'vendor/node-qrcode/lib/renderer/terminal.impl':
+    'src/vendor/node-qrcode/lib/renderer/terminal.ts',
+  'vendor/node-qrcode/lib/renderer/terminal/terminal-small.impl':
+    'src/vendor/node-qrcode/lib/renderer/terminal/terminal-small.ts',
+  'vendor/node-qrcode/lib/renderer/terminal/terminal.impl':
+    'src/vendor/node-qrcode/lib/renderer/terminal/terminal.ts',
+  'vendor/node-qrcode/lib/renderer/utf8.impl':
+    'src/vendor/node-qrcode/lib/renderer/utf8.ts',
+  'vendor/node-qrcode/lib/renderer/utils.impl':
+    'src/vendor/node-qrcode/lib/renderer/utils.ts',
+}
+
+const migratedVendorApiEntries = {
+  'vendor/node-qrcode/helper/to-sjis-browser.impl':
+    'src/vendor/node-qrcode/helper/to-sjis-browser.ts',
+  'vendor/node-qrcode/helper/to-sjis.impl':
+    'src/vendor/node-qrcode/helper/to-sjis.ts',
+  'vendor/node-qrcode/lib/browser.impl':
+    'src/vendor/node-qrcode/lib/browser.ts',
+  'vendor/node-qrcode/lib/can-promise.impl':
+    'src/vendor/node-qrcode/lib/can-promise.ts',
+  'vendor/node-qrcode/lib/index.impl': 'src/vendor/node-qrcode/lib/index.ts',
+  'vendor/node-qrcode/lib/server.impl': 'src/vendor/node-qrcode/lib/server.ts',
+}
+
 export default defineConfig([
   {
     entry: {
@@ -98,7 +132,11 @@ export default defineConfig([
     sourcemap: true,
   },
   {
-    entry: migratedVendorCoreEntries,
+    entry: {
+      ...migratedVendorCoreEntries,
+      ...migratedVendorRendererEntries,
+      ...migratedVendorApiEntries,
+    },
     format: 'cjs',
     dts: false,
     exports: false,
