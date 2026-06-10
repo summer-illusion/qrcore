@@ -26,10 +26,16 @@ function copyVendorRuntimeFiles(): CopyEntry[] {
 const migratedVendorCoreEntries = {
   'vendor/node-qrcode/lib/core/alignment-pattern.impl':
     'src/vendor/node-qrcode/lib/core/alignment-pattern.ts',
+  'vendor/node-qrcode/lib/core/alphanumeric-data.impl':
+    'src/vendor/node-qrcode/lib/core/alphanumeric-data.ts',
   'vendor/node-qrcode/lib/core/bit-buffer.impl':
     'src/vendor/node-qrcode/lib/core/bit-buffer.ts',
   'vendor/node-qrcode/lib/core/bit-matrix.impl':
     'src/vendor/node-qrcode/lib/core/bit-matrix.ts',
+  'vendor/node-qrcode/lib/core/byte-data.impl':
+    'src/vendor/node-qrcode/lib/core/byte-data.ts',
+  'vendor/node-qrcode/lib/core/error-correction-code.impl':
+    'src/vendor/node-qrcode/lib/core/error-correction-code.ts',
   'vendor/node-qrcode/lib/core/error-correction-level.impl':
     'src/vendor/node-qrcode/lib/core/error-correction-level.ts',
   'vendor/node-qrcode/lib/core/finder-pattern.impl':
@@ -40,6 +46,12 @@ const migratedVendorCoreEntries = {
     'src/vendor/node-qrcode/lib/core/galois-field.ts',
   'vendor/node-qrcode/lib/core/mask-pattern.impl':
     'src/vendor/node-qrcode/lib/core/mask-pattern.ts',
+  'vendor/node-qrcode/lib/core/mode.impl':
+    'src/vendor/node-qrcode/lib/core/mode.ts',
+  'vendor/node-qrcode/lib/core/kanji-data.impl':
+    'src/vendor/node-qrcode/lib/core/kanji-data.ts',
+  'vendor/node-qrcode/lib/core/numeric-data.impl':
+    'src/vendor/node-qrcode/lib/core/numeric-data.ts',
   'vendor/node-qrcode/lib/core/polynomial.impl':
     'src/vendor/node-qrcode/lib/core/polynomial.ts',
   'vendor/node-qrcode/lib/core/reed-solomon-encoder.impl':
@@ -48,6 +60,10 @@ const migratedVendorCoreEntries = {
     'src/vendor/node-qrcode/lib/core/utils.ts',
   'vendor/node-qrcode/lib/core/version-check.impl':
     'src/vendor/node-qrcode/lib/core/version-check.ts',
+  'vendor/node-qrcode/lib/core/version.impl':
+    'src/vendor/node-qrcode/lib/core/version.ts',
+  'vendor/node-qrcode/lib/core/regex.impl':
+    'src/vendor/node-qrcode/lib/core/regex.ts',
 }
 
 export default defineConfig([
