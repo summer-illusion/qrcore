@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
-import { run } from './script-utils.mjs'
+import { run } from './script-utils.ts'
 
 const releaseType = process.argv[2] ?? 'patch'
 const allowedReleaseTypes = new Set([
@@ -20,7 +20,7 @@ if (!allowedReleaseTypes.has(releaseType)) {
   process.exit(1)
 }
 
-function hasChanges() {
+function hasChanges(): boolean {
   return run('git', ['status', '--porcelain'], { capture: true }).length > 0
 }
 

@@ -2,7 +2,22 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
-const runGit = (args, fallback = '') => {
+type PackageMetadata = {
+  version?: string
+  repository?: string | { url?: string }
+}
+
+type ChangelogOptions = {
+  changelogPath?: string
+  packagePath?: string
+}
+
+type ChangelogGroup = {
+  title: string
+  types: string[]
+}
+
+const runGit = (args: string[], fallback = ''): string => {
   try {
     return execFileSync('git', args, {
       encoding: 'utf8',
@@ -13,7 +28,7 @@ const runGit = (args, fallback = '') => {
   }
 }
 
-const normalizeRepositoryUrl = (url) =>
+const normalizeRepositoryUrl = (url: unknown): string =>
   String(url || '')
     .replace(/^git\+/, '')
     .replace(/^ssh:\/\/git@github\.com\//, 'https://github.com/')
@@ -23,11 +38,13 @@ const normalizeRepositoryUrl = (url) =>
 export const generateChangelog = ({
   changelogPath = 'CHANGELOG.md',
   packagePath = 'package.json',
-} = {}) => {
-  const pkg = JSON.parse(readFileSync(packagePath, 'utf8'))
-  const version = pkg.version
+}: ChangelogOptions = {}): void => {
+  const pkg = JSON.parse(readFileSync(packagePath, 'utf8')) as PackageMetadata
+  const version = String(pkg.version || '')
   const today = new Date().toISOString().slice(0, 10)
-  const repositoryUrl = normalizeRepositoryUrl(pkg.repository?.url)
+  const repositoryUrl = normalizeRepositoryUrl(
+    typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url,
+  )
   const existingChangelog = existsSync(changelogPath)
     ? readFileSync(changelogPath, 'utf8')
     : ''
@@ -45,7 +62,7 @@ export const generateChangelog = ({
   const range = latestTag ? `${latestTag}..HEAD` : 'HEAD'
   const gitLog = runGit(['log', '--no-merges', '--format=%H%x1f%s', range], '')
 
-  const groups = [
+  const groups: ChangelogGroup[] = [
     { title: 'Features', types: ['feat'] },
     { title: 'Bug Fixes', types: ['fix'] },
     { title: 'Performance Improvements', types: ['perf'] },
@@ -59,15 +76,17 @@ export const generateChangelog = ({
     },
   ]
 
-  const entries = new Map(groups.map((group) => [group.title, []]))
+  const entries = new Map<string, string[]>(
+    groups.map((group) => [group.title, []]),
+  )
 
-  const parseCommit = (line) => {
+  const parseCommit = (line: string): void => {
     const [hash, subject = ''] = line.split('\x1f')
     const conventionalMatch = subject.match(/^(\w+)(?:\([^)]+\))?(!)?:\s*(.+)$/)
     const type = conventionalMatch?.[1] || 'other'
     const message = conventionalMatch?.[3] || subject
     const group =
-      groups.find((item) => item.types.includes(type)) ||
+      groups.find((item) => item.types.includes(type)) ??
       groups[groups.length - 1]
     const shortHash = hash.slice(0, 7)
     const hashText = repositoryUrl

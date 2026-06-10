@@ -41,21 +41,21 @@
     ]
   },
   "scripts": {
-    "build": "tsdown --config-loader native",
+    "build": "tsdown --config-loader tsx",
     "check": "tsc --noEmit",
     "ci": "npm run lint && npm run check && npm run test && npm run build && npm run smoke && npm run pack:dry",
-    "commit-push": "node scripts/commit-push.mjs",
+    "commit-push": "tsx scripts/commit-push.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "changelog": "node scripts/generate-changelog.mjs",
+    "changelog": "tsx scripts/generate-changelog.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "pack:dry": "npm pack --dry-run",
     "prepare": "husky",
-    "version:bump": "node scripts/auto-bump-version.mjs",
-    "release": "node scripts/bump-version.mjs",
+    "version:bump": "tsx scripts/auto-bump-version.ts",
+    "release": "tsx scripts/bump-version.ts",
     "test": "vitest run",
-    "smoke": "node test/smoke.mjs",
+    "smoke": "tsx test/smoke.ts",
     "prepack": "npm run build && npm run test && npm run smoke"
   },
   "dependencies": {
@@ -72,6 +72,7 @@
     "oxlint": "^1.65.0",
     "prettier": "^3.8.3",
     "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
     "typescript": "~6.0.2",
     "vitest": "^4.0.0"
   },

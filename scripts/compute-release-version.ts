@@ -2,7 +2,17 @@ import { pathToFileURL } from 'node:url'
 
 const VERSION_PATTERN = /^v?(\d+)\.(\d+)\.(\d+)(?:-.+)?$/
 
-export const parseVersion = (value, label = 'version') => {
+type ParsedVersion = {
+  major: number
+  minor: number
+  patch: number
+  raw: string
+}
+
+export const parseVersion = (
+  value: unknown,
+  label = 'version',
+): ParsedVersion => {
   const normalized = String(value || '').trim()
   const match = normalized.match(VERSION_PATTERN)
 
@@ -20,17 +30,17 @@ export const parseVersion = (value, label = 'version') => {
   }
 }
 
-export const computeMainVersion = (currentVersion) => {
+export const computeMainVersion = (currentVersion: unknown): string => {
   const current = parseVersion(currentVersion, 'current package version')
   return `${current.major}.${current.minor + 1}.0`
 }
 
-const main = () => {
+const main = (): void => {
   const [currentVersion] = process.argv.slice(2)
 
   if (!currentVersion) {
     throw new Error(
-      'Usage: node scripts/compute-release-version.mjs <current-version>',
+      'Usage: tsx scripts/compute-release-version.ts <current-version>',
     )
   }
 
