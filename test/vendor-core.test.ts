@@ -23,6 +23,7 @@ import NumericData from '../src/vendor/node-qrcode/lib/core/numeric-data.ts'
 import * as Polynomial from '../src/vendor/node-qrcode/lib/core/polynomial.ts'
 import ReedSolomonEncoder from '../src/vendor/node-qrcode/lib/core/reed-solomon-encoder.ts'
 import * as Regex from '../src/vendor/node-qrcode/lib/core/regex.ts'
+import * as Segments from '../src/vendor/node-qrcode/lib/core/segments.ts'
 import * as Utils from '../src/vendor/node-qrcode/lib/core/utils.ts'
 import * as Version from '../src/vendor/node-qrcode/lib/core/version.ts'
 import { isValid } from '../src/vendor/node-qrcode/lib/core/version-check.ts'
@@ -52,6 +53,25 @@ function bitsFor(data: { write(bitBuffer: BitBuffer): void }): {
     length: bitBuffer.getLengthInBits(),
     bytes: bitBuffer.buffer,
   }
+}
+
+function segmentSummary(
+  segments: Array<{
+    mode: { id?: string; bit: number }
+    data: string | Uint8Array
+    getLength(): number
+    getBitsLength(): number
+  }>,
+) {
+  return segments.map((segment) => ({
+    mode: segment.mode.id ?? segment.mode.bit,
+    data:
+      segment.data instanceof Uint8Array
+        ? Array.from(segment.data)
+        : segment.data,
+    length: segment.getLength(),
+    bits: segment.getBitsLength(),
+  }))
 }
 
 describe('migrated node-qrcode core modules', () => {
@@ -182,6 +202,43 @@ describe('migrated node-qrcode core modules', () => {
     ).toBe(1)
   })
 
+  it('keeps segment splitting and optimization compatible', () => {
+    UtilsCjs.setToSJISFunction(testToSJIS)
+
+    expect(
+      segmentSummary(
+        Segments.fromArray([
+          { data: '123', mode: 'numeric' },
+          { data: 'AB', mode: 'alphanumeric' },
+          { data: [65, 66], mode: 'byte' },
+          { data: '漢', mode: 'kanji' },
+        ]),
+      ),
+    ).toEqual([
+      { mode: 'Numeric', data: '123', length: 3, bits: 10 },
+      { mode: 'Alphanumeric', data: 'AB', length: 2, bits: 11 },
+      { mode: 'Byte', data: [65, 66], length: 2, bits: 16 },
+      { mode: 'Kanji', data: '漢', length: 1, bits: 13 },
+    ])
+
+    expect(segmentSummary(Segments.rawSplit('123AB漢x'))).toEqual([
+      { mode: 'Numeric', data: '123', length: 3, bits: 10 },
+      { mode: 'Alphanumeric', data: 'AB', length: 2, bits: 11 },
+      { mode: 'Kanji', data: '漢', length: 1, bits: 13 },
+      { mode: 'Byte', data: [120], length: 1, bits: 8 },
+    ])
+
+    expect(segmentSummary(Segments.fromString('123AB漢x', 5))).toEqual([
+      { mode: 'Numeric', data: '123', length: 3, bits: 10 },
+      {
+        mode: 'Byte',
+        data: [65, 66, 230, 188, 162, 120],
+        length: 6,
+        bits: 48,
+      },
+    ])
+  })
+
   it('keeps polynomial and reed-solomon math stable', () => {
     expect(
       Array.from(
@@ -260,6 +317,7 @@ describe('migrated node-qrcode core modules', () => {
     const PolynomialCjs = require('../src/vendor/node-qrcode/lib/core/polynomial.cjs')
     const ReedSolomonEncoderCjs = require('../src/vendor/node-qrcode/lib/core/reed-solomon-encoder.cjs')
     const MaskPatternCjs = require('../src/vendor/node-qrcode/lib/core/mask-pattern.cjs')
+    const SegmentsCjs = require('../src/vendor/node-qrcode/lib/core/segments.cjs')
     const VersionCjs = require('../src/vendor/node-qrcode/lib/core/version.cjs')
     const VersionCheck = require('../src/vendor/node-qrcode/lib/core/version-check.cjs')
     const CjsBitBuffer = require('../src/vendor/node-qrcode/lib/core/bit-buffer.cjs')
@@ -279,6 +337,15 @@ describe('migrated node-qrcode core modules', () => {
     ])
     expect(new ReedSolomonEncoderCjs(1).degree).toBe(1)
     expect(MaskPatternCjs.from('3')).toBe(3)
+    expect(segmentSummary(SegmentsCjs.fromString('123AB漢x', 5))).toEqual([
+      { mode: 'Numeric', data: '123', length: 3, bits: 10 },
+      {
+        mode: 'Byte',
+        data: [65, 66, 230, 188, 162, 120],
+        length: 6,
+        bits: 48,
+      },
+    ])
     expect(VersionCjs.getEncodedBits(7)).toBe(31892)
     expect(VersionCheck.isValid(40)).toBe(true)
     expect(new CjsBitBuffer().getLengthInBits()).toBe(0)
