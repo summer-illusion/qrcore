@@ -41,7 +41,7 @@
     ]
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown --config-loader native",
     "check": "tsc --noEmit",
     "ci": "npm run lint && npm run check && npm run test && npm run build && npm run smoke && npm run pack:dry",
     "commit-push": "node scripts/commit-push.mjs",
