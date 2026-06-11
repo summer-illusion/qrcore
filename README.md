@@ -11,11 +11,14 @@ npm install @qrcore/core
 ## API
 
 ```ts
-import { toString, toBuffer, create } from '@qrcore/core'
+import { toString, toBuffer, create, createMatrix } from '@qrcore/core'
 
 const svg = await toString('hello qrcore', { type: 'svg' })
 const png = await toBuffer('hello qrcore', { type: 'png' })
 const data = create('hello qrcore')
+const matrix = createMatrix('hello qrcore')
+
+console.log(matrix.size, matrix.get(0, 0), matrix.toRows())
 ```
 
 CommonJS is supported too:
@@ -52,7 +55,7 @@ npm ci
 npm run ci
 ```
 
-The local and CI quality gate runs linting, type checking, tests, build, smoke checks for ESM/CJS/CLI output, and `npm pack --dry-run`.
+The local and CI quality gate runs linting, type checking, tests, PNG round-trip decoding, build, smoke checks for ESM/CJS/CLI output, and `npm pack --dry-run`.
 
 Release helpers:
 

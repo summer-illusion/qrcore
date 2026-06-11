@@ -60,6 +60,16 @@ export interface QRCodeData {
   segments: unknown[]
 }
 
+export interface QRMatrix {
+  readonly size: number
+  readonly version: number
+  readonly errorCorrectionLevel: ErrorCorrectionLevel
+  readonly maskPattern: number
+  readonly data: readonly boolean[]
+  get(row: number, column: number): boolean
+  toRows(): boolean[][]
+}
+
 export type QRCallback<T> = (error: Error | null, result: T) => void
 export type QREmptyCallback = (error?: Error | null) => void
 
@@ -123,6 +133,41 @@ export interface QRCodeModule {
   ): void
 }
 
+export interface QRCoreModule extends QRCodeModule {
+  createMatrix(data: QRInput, options?: QRRenderOptions): QRMatrix
+  toMatrix(data: QRInput, options?: QRRenderOptions): QRMatrix
+}
+
+function errorCorrectionLevelFromBit(bit: number): ErrorCorrectionLevel {
+  switch (bit) {
+    case 1:
+      return 'L'
+    case 0:
+      return 'M'
+    case 3:
+      return 'Q'
+    case 2:
+      return 'H'
+    default:
+      throw new Error(`Unknown QR error correction bit: ${bit}`)
+  }
+}
+
+function assertMatrixIndex(size: number, row: number, column: number): void {
+  if (
+    !Number.isInteger(row) ||
+    !Number.isInteger(column) ||
+    row < 0 ||
+    column < 0 ||
+    row >= size ||
+    column >= size
+  ) {
+    throw new RangeError(
+      `Matrix coordinates out of range: row ${row}, column ${column}, size ${size}`,
+    )
+  }
+}
+
 export const create = qrcode.create
 export const toString = qrcode.toString
 export const toDataURL = qrcode.toDataURL
@@ -131,4 +176,43 @@ export const toFile = qrcode.toFile
 export const toFileStream = qrcode.toFileStream
 export const toCanvas = qrcode.toCanvas
 
-export default qrcode
+export function createMatrix(
+  data: QRInput,
+  options?: QRRenderOptions,
+): QRMatrix {
+  const qr = create(data, options)
+  const size = qr.modules.size
+  const matrixData = Object.freeze(
+    Array.from({ length: size * size }, (_, index) =>
+      Boolean(qr.modules.data[index]),
+    ),
+  )
+
+  return Object.freeze({
+    size,
+    version: qr.version,
+    errorCorrectionLevel: errorCorrectionLevelFromBit(
+      qr.errorCorrectionLevel.bit,
+    ),
+    maskPattern: qr.maskPattern,
+    data: matrixData,
+    get(row: number, column: number) {
+      assertMatrixIndex(size, row, column)
+      return matrixData[row * size + column]
+    },
+    toRows() {
+      return Array.from({ length: size }, (_, row) =>
+        matrixData.slice(row * size, (row + 1) * size),
+      )
+    },
+  })
+}
+
+export const toMatrix = createMatrix
+
+const qrcore = Object.assign(qrcode, {
+  createMatrix,
+  toMatrix,
+}) as QRCoreModule
+
+export default qrcore
