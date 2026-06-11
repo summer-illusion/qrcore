@@ -4,15 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release, such as v0.1.0. Leave empty to publish the checked out main version.'
+        description: 'Tag to release, such as v0.1.0. Leave empty to publish the selected branch version.'
         required: false
         type: string
-      npm_tag:
-        description: 'NPM dist tag'
+      channel:
+        description: 'Manual release channel. auto uses beta on dev and latest for version tags/main.'
         required: false
-        default: latest
+        default: auto
         type: choice
         options:
+          - auto
           - latest
           - beta
 
@@ -52,14 +53,29 @@ jobs:
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
           INPUT_TAG="${{ github.event.inputs.tag || '' }}"
-          NPM_TAG="${{ github.event.inputs.npm_tag }}"
+          INPUT_CHANNEL="${{ github.event.inputs.channel || 'auto' }}"
+          CHANNEL="$INPUT_CHANNEL"
           PACKAGE_NAME="$(node -p "require('./package.json').name")"
           NPM_PACKAGE_NAME="${PACKAGE_NAME##*/}"
 
-          if [ "$NPM_TAG" = "beta" ]; then
+          if [ "$CHANNEL" = "auto" ]; then
+            if [ -n "$INPUT_TAG" ] || [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+              CHANNEL="latest"
+            elif [[ "$GITHUB_REF" == refs/heads/dev ]]; then
+              CHANNEL="beta"
+            elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
+              CHANNEL="latest"
+            else
+              echo "Unable to infer release channel for $GITHUB_REF. Set workflow_dispatch channel explicitly."
+              exit 1
+            fi
+          fi
+
+          if [ "$CHANNEL" = "beta" ]; then
             NPM_LATEST_VERSION=""
             NPM_BETA_VERSION=""
             MAIN_VERSION=""
+            NPM_TAG="beta"
 
             if NPM_LATEST_VERSION=$(npm view "$NPM_PACKAGE_NAME@latest" version 2>/dev/null); then
               echo "npm latest version: $NPM_LATEST_VERSION"
@@ -80,38 +96,88 @@ jobs:
             fi
 
             PUBLISH_VERSION=$(node scripts/compute-release-version.mjs "$PACKAGE_VERSION" "$NPM_LATEST_VERSION" "$NPM_BETA_VERSION" "$MAIN_VERSION")
-          else
+          elif [ "$CHANNEL" = "latest" ]; then
             PUBLISH_VERSION="$PACKAGE_VERSION"
+            NPM_TAG="latest"
+          else
+            echo "Unsupported release channel: $CHANNEL"
+            exit 1
           fi
 
-          if [[ "$NPM_TAG" = "latest" && "$PUBLISH_VERSION" == *-* ]]; then
+          if [ "$CHANNEL" = "latest" ] && [[ "$PUBLISH_VERSION" == *-* ]]; then
             echo "Latest releases must use a stable version, got $PUBLISH_VERSION."
             exit 1
           fi
 
-          if [ "$NPM_TAG" = "latest" ] && [ -z "$INPUT_TAG" ] && [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-            echo "Latest releases without an explicit tag must run from refs/heads/main."
+          TAG_REF="$INPUT_TAG"
+          if [ -z "$TAG_REF" ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG_REF="${GITHUB_REF#refs/tags/}"
+          fi
+
+          if [ -n "$TAG_REF" ] && [ "$CHANNEL" = "latest" ]; then
+            TAG_VERSION="${TAG_REF#v}"
+            if [ "$TAG_VERSION" != "$PUBLISH_VERSION" ]; then
+              echo "Release tag $TAG_REF does not match package.json version $PUBLISH_VERSION."
+              exit 1
+            fi
+          fi
+
+          echo "Release channel: $CHANNEL"
+          echo "npm dist-tag: $NPM_TAG"
+          echo "Version to publish: $PUBLISH_VERSION"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$PUBLISH_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure beta releases come from dev
+        if: steps.release.outputs.channel == 'beta'
+        shell: bash
+        run: |
+          git fetch origin dev:refs/remotes/origin/dev
+
+          if [[ "$GITHUB_REF" != refs/heads/dev ]]; then
+            echo "Beta releases must run from refs/heads/dev."
             exit 1
           fi
 
-          if [ -n "$INPUT_TAG" ]; then
-            TAG_VERSION="${INPUT_TAG#v}"
-            if [ "$NPM_TAG" = "latest" ] && [ "$TAG_VERSION" != "$PUBLISH_VERSION" ]; then
-              echo "Release tag $INPUT_TAG does not match package.json version $PUBLISH_VERSION."
-              exit 1
-            fi
-
-            git fetch origin main:refs/remotes/origin/main
-            if [ "$NPM_TAG" = "latest" ] && ! git merge-base --is-ancestor "$INPUT_TAG" origin/main; then
-              echo "Release tag $INPUT_TAG must point to a commit contained in origin/main."
-              exit 1
-            fi
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/dev)" ]; then
+            echo "Beta releases must run from the current origin/dev HEAD."
+            exit 1
           fi
 
-          echo "npm dist-tag: $NPM_TAG"
-          echo "Version to publish: $PUBLISH_VERSION"
-          echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
-          echo "version=$PUBLISH_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Ensure latest releases come from main
+        if: steps.release.outputs.channel == 'latest'
+        shell: bash
+        run: |
+          git fetch origin main:refs/remotes/origin/main --tags
+
+          TAG_REF="${{ github.event.inputs.tag || '' }}"
+          if [ -z "$TAG_REF" ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG_REF="${GITHUB_REF#refs/tags/}"
+          fi
+
+          if [ -n "$TAG_REF" ]; then
+            TAG_COMMIT="$(git rev-list -n 1 "$TAG_REF")"
+            HEAD_COMMIT="$(git rev-parse HEAD)"
+
+            if [ "$TAG_COMMIT" != "$HEAD_COMMIT" ]; then
+              echo "Latest tag release must checkout $TAG_REF. HEAD is $HEAD_COMMIT, tag is $TAG_COMMIT."
+              exit 1
+            fi
+
+            if ! git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
+              echo "Latest release tag $TAG_REF must point to a commit contained in origin/main."
+              exit 1
+            fi
+          elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
+            if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+              echo "Latest branch release must run from the current origin/main HEAD."
+              exit 1
+            fi
+          else
+            echo "Latest releases must come from refs/heads/main or a version tag on main."
+            exit 1
+          fi
 
       - name: Prepare unscoped NPM package name
         run: npm run publish:prepare
