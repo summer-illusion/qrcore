@@ -20,6 +20,7 @@ type PackageLock = {
 type PrepareOptions = {
   packagePath?: string
   lockPath?: string
+  version?: string
 }
 
 function readJson<T>(path: string): T {
@@ -51,11 +52,17 @@ export function prepareUnscopedNpmPublish(options: PrepareOptions = {}): void {
   const pkg = readJson<PackageMetadata>(packagePath)
   const currentName = pkg.name ?? ''
   const publishName = getUnscopedPackageName(currentName)
+  const publishVersion = options.version?.trim()
 
   if (pkg.name !== publishName) {
     pkg.name = publishName
-    writeJson(packagePath, pkg)
   }
+
+  if (publishVersion && pkg.version !== publishVersion) {
+    pkg.version = publishVersion
+  }
+
+  writeJson(packagePath, pkg)
 
   const lock = readJson<PackageLock>(lockPath)
   let lockChanged = false
@@ -70,6 +77,20 @@ export function prepareUnscopedNpmPublish(options: PrepareOptions = {}): void {
     lockChanged = true
   }
 
+  if (publishVersion && lock.version !== publishVersion) {
+    lock.version = publishVersion
+    lockChanged = true
+  }
+
+  if (
+    publishVersion &&
+    lock.packages?.['']?.version &&
+    lock.packages[''].version !== publishVersion
+  ) {
+    lock.packages[''].version = publishVersion
+    lockChanged = true
+  }
+
   if (lockChanged) {
     writeJson(lockPath, lock)
   }
@@ -81,6 +102,10 @@ export function prepareUnscopedNpmPublish(options: PrepareOptions = {}): void {
       `Prepared unscoped NPM publish name: ${currentName} -> ${publishName}`,
     )
   }
+
+  if (publishVersion) {
+    console.log(`Prepared NPM publish version: ${publishVersion}`)
+  }
 }
 
 const isDirectRun =
@@ -88,5 +113,5 @@ const isDirectRun =
   pathToFileURL(process.argv[1]).href === import.meta.url
 
 if (isDirectRun) {
-  prepareUnscopedNpmPublish()
+  prepareUnscopedNpmPublish({ version: process.env.PUBLISH_VERSION })
 }

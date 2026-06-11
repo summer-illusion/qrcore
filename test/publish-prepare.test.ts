@@ -46,14 +46,30 @@ describe('prepare npm publish metadata', () => {
         }),
       )
 
-      prepareUnscopedNpmPublish({ packagePath, lockPath })
+      prepareUnscopedNpmPublish({
+        packagePath,
+        lockPath,
+        version: '1.0.1-beta.12.1',
+      })
 
-      expect(readJson<{ name: string }>(packagePath).name).toBe('qrcore')
-      expect(readJson<{ name: string }>(lockPath).name).toBe('qrcore')
+      expect(readJson<{ name: string; version: string }>(packagePath)).toEqual({
+        name: 'qrcore',
+        version: '1.0.1-beta.12.1',
+      })
+      expect(readJson<{ name: string; version: string }>(lockPath)).toEqual(
+        expect.objectContaining({
+          name: 'qrcore',
+          version: '1.0.1-beta.12.1',
+        }),
+      )
       expect(
-        readJson<{ packages: { '': { name: string } } }>(lockPath).packages['']
-          .name,
-      ).toBe('qrcore')
+        readJson<{ packages: { '': { name: string; version: string } } }>(
+          lockPath,
+        ).packages[''],
+      ).toEqual({
+        name: 'qrcore',
+        version: '1.0.1-beta.12.1',
+      })
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
