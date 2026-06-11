@@ -79,7 +79,7 @@ jobs:
               echo "Unable to read origin/main package version. Falling back to local/npm versions."
             fi
 
-            PUBLISH_VERSION=$(tsx scripts/compute-release-version.ts "$PACKAGE_VERSION" "$NPM_LATEST_VERSION" "$NPM_BETA_VERSION" "$MAIN_VERSION")
+            PUBLISH_VERSION=$(node scripts/compute-release-version.mjs "$PACKAGE_VERSION" "$NPM_LATEST_VERSION" "$NPM_BETA_VERSION" "$MAIN_VERSION")
           else
             PUBLISH_VERSION="$PACKAGE_VERSION"
           fi

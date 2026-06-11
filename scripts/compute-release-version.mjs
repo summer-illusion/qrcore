@@ -3,17 +3,7 @@ import { pathToFileURL } from 'node:url'
 const VERSION_PATTERN = /^v?(\d+)\.(\d+)\.(\d+)(?:-.+)?$/
 const PRERELEASE_IDENTIFIER_PATTERN = /^[0-9A-Za-z-]+$/
 
-type ParsedVersion = {
-  major: number
-  minor: number
-  patch: number
-  raw: string
-}
-
-export const parseVersion = (
-  value: unknown,
-  label = 'version',
-): ParsedVersion => {
+export const parseVersion = (value, label = 'version') => {
   const normalized = String(value || '').trim()
   const match = normalized.match(VERSION_PATTERN)
 
@@ -31,36 +21,26 @@ export const parseVersion = (
   }
 }
 
-export const computeMainVersion = (currentVersion: unknown): string => {
+export const computeMainVersion = (currentVersion) => {
   const current = parseVersion(currentVersion, 'current package version')
   return `${current.major}.${current.minor + 1}.0`
 }
 
-export const compareVersions = (
-  left: ParsedVersion,
-  right: ParsedVersion,
-): number => {
+export const compareVersions = (left, right) => {
   if (left.major !== right.major) return left.major - right.major
   if (left.minor !== right.minor) return left.minor - right.minor
   return left.patch - right.patch
 }
 
-const sameReleaseLine = (left: ParsedVersion, right: ParsedVersion): boolean =>
+const sameReleaseLine = (left, right) =>
   left.major === right.major && left.minor === right.minor
 
-const compareReleaseLines = (
-  left: ParsedVersion,
-  right: ParsedVersion,
-): number => {
+const compareReleaseLines = (left, right) => {
   if (left.major !== right.major) return left.major - right.major
   return left.minor - right.minor
 }
 
-const prereleaseIdentifier = (
-  value: unknown,
-  fallback: unknown,
-  label: string,
-): string => {
+const prereleaseIdentifier = (value, fallback, label) => {
   const normalized = String(value || fallback).trim()
 
   if (!normalized || !PRERELEASE_IDENTIFIER_PATTERN.test(normalized)) {
@@ -70,21 +50,14 @@ const prereleaseIdentifier = (
   return normalized
 }
 
-export function computeBetaVersion({
+export const computeBetaVersion = ({
   currentVersion,
   npmLatestVersion,
   npmBetaVersion,
   mainVersion,
   runNumber,
   runAttempt,
-}: {
-  currentVersion: unknown
-  npmLatestVersion?: unknown
-  npmBetaVersion?: unknown
-  mainVersion?: unknown
-  runNumber?: unknown
-  runAttempt?: unknown
-}): string {
+}) => {
   const current = parseVersion(currentVersion, 'current package version')
   const candidates = [current]
   const latest = String(npmLatestVersion || '').trim()
@@ -130,13 +103,13 @@ export function computeBetaVersion({
   return `${base.major}.${base.minor}.${base.patch + 1}-beta.${run}.${attempt}`
 }
 
-const main = (): void => {
+const main = () => {
   const args = process.argv.slice(2)
   const [currentVersion, npmLatestVersion, npmBetaVersion, mainVersion] = args
 
   if (!currentVersion) {
     throw new Error(
-      'Usage: tsx scripts/compute-release-version.ts <current-version> [npm-latest-version] [npm-beta-version] [main-version]',
+      'Usage: node scripts/compute-release-version.mjs <current-version> [npm-latest-version] [npm-beta-version] [main-version]',
     )
   }
 
