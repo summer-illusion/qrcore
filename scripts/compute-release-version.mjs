@@ -26,6 +26,11 @@ export const computeMainVersion = (currentVersion) => {
   return `${current.major}.${current.minor + 1}.0`
 }
 
+export const computePatchVersion = (currentVersion) => {
+  const current = parseVersion(currentVersion, 'current package version')
+  return `${current.major}.${current.minor}.${current.patch + 1}`
+}
+
 export const compareVersions = (left, right) => {
   if (left.major !== right.major) return left.major - right.major
   if (left.minor !== right.minor) return left.minor - right.minor

@@ -1,6 +1,9 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 
-import { computeMainVersion } from './compute-release-version.mjs'
+import {
+  computeMainVersion,
+  computePatchVersion,
+} from './compute-release-version.mjs'
 import { generateChangelog } from './generate-changelog.ts'
 
 type PackageMetadata = {
@@ -14,11 +17,22 @@ type PackageLock = {
   [key: string]: unknown
 }
 
-console.log('Bumping qrcore version...')
+const bumpType =
+  process.argv[2] ??
+  (process.env.GITHUB_REF_NAME === 'main' ? 'minor' : 'patch')
+
+if (bumpType !== 'patch' && bumpType !== 'minor') {
+  throw new Error(`Unsupported version bump type: ${bumpType}`)
+}
+
+console.log(`Bumping qrcore ${bumpType} version...`)
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as PackageMetadata
 const oldVersion = pkg.version
-const newVersion = computeMainVersion(oldVersion)
+const newVersion =
+  bumpType === 'minor'
+    ? computeMainVersion(oldVersion)
+    : computePatchVersion(oldVersion)
 
 pkg.version = newVersion
 writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
