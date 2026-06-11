@@ -1,0 +1,9 @@
+# Keep the published package small even if package.json "files" changes.
+*
+
+!dist/
+!dist/**
+!README.md
+!CHANGELOG.md
+!LICENSE*
+!package.json
