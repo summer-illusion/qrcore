@@ -4,6 +4,9 @@
   "description": "Modern QR Code generator with typed ESM, CommonJS, and CLI support.",
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/summer-illusion/qrcore.git"
@@ -25,8 +28,8 @@
     }
   },
   "bin": {
-    "qrcore": "./dist/cli.mjs",
-    "qrcode": "./dist/cli.mjs"
+    "qrcore": "dist/cli.mjs",
+    "qrcode": "dist/cli.mjs"
   },
   "files": [
     "dist"
@@ -50,7 +53,7 @@
     "changelog": "tsx scripts/generate-changelog.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "pack:dry": "npm pack --dry-run",
+    "pack:dry": "npm pack --dry-run --ignore-scripts",
     "publish:prepare": "tsx scripts/prepare-npm-publish.ts",
     "prepare": "husky",
     "version:bump": "tsx scripts/auto-bump-version.ts",

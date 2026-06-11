@@ -137,6 +137,6 @@ jobs:
         run: npm run pack:dry
 
       - name: Publish to NPM
-        run: npm publish --tag ${{ steps.release.outputs.npm_tag }} --provenance
+        run: npm publish --ignore-scripts --access public --tag ${{ steps.release.outputs.npm_tag }} --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
