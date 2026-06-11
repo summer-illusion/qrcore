@@ -12,6 +12,8 @@ export declare const parseVersion: (
 
 export declare const computeMainVersion: (currentVersion: unknown) => string
 
+export declare const computePatchVersion: (currentVersion: unknown) => string
+
 export declare const compareVersions: (
   left: ParsedVersion,
   right: ParsedVersion,

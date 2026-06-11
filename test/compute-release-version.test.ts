@@ -3,12 +3,18 @@ import { describe, expect, it } from 'vitest'
 import {
   computeBetaVersion,
   computeMainVersion,
+  computePatchVersion,
   parseVersion,
 } from '../scripts/compute-release-version.mjs'
 
 describe('release version computation', () => {
   it('computes the next main version line', () => {
     expect(computeMainVersion('0.4.0')).toBe('0.5.0')
+  })
+
+  it('computes the next dev patch version', () => {
+    expect(computePatchVersion('0.4.0')).toBe('0.4.1')
+    expect(computePatchVersion('0.4.3')).toBe('0.4.4')
   })
 
   it('computes beta versions from the selected stable line', () => {
