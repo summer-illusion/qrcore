@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import qrcode, { create, toBuffer, toString } from '../src/index.js'
+import qrcode, {
+  create,
+  createMatrix,
+  toBuffer,
+  toMatrix,
+  toString,
+} from '../src/index.js'
 import toSJIS from '../src/vendor/node-qrcode/helper/to-sjis.cjs'
 
 const toSJISFunc = toSJIS as (codePoint: number) => number
@@ -12,6 +18,30 @@ describe('qrcore', () => {
     expect(data.version).toBeGreaterThanOrEqual(1)
     expect(data.modules.size).toBeGreaterThan(0)
     expect(data.modules.data.length).toBe(data.modules.size * data.modules.size)
+  })
+
+  it('exposes a stable headless matrix API', () => {
+    const matrix = createMatrix('qrcore', {
+      errorCorrectionLevel: 'H',
+      maskPattern: 2,
+    })
+    const aliasMatrix = toMatrix('qrcore matrix')
+
+    expect(matrix).toMatchObject({
+      errorCorrectionLevel: 'H',
+      maskPattern: 2,
+    })
+    expect(matrix.version).toBeGreaterThanOrEqual(1)
+    expect(matrix.size).toBe(17 + matrix.version * 4)
+    expect(matrix.data).toHaveLength(matrix.size * matrix.size)
+    expect(matrix.get(0, 0)).toBe(true)
+    expect(matrix.get(7, 7)).toBe(false)
+    expect(matrix.toRows()).toHaveLength(matrix.size)
+    expect(matrix.toRows()[0]).toHaveLength(matrix.size)
+    expect(() => matrix.get(-1, 0)).toThrow(RangeError)
+    expect(aliasMatrix.data).toHaveLength(aliasMatrix.size * aliasMatrix.size)
+    expect(qrcode.createMatrix('default export matrix').size).toBeGreaterThan(0)
+    expect(qrcode.toMatrix('default export alias').size).toBeGreaterThan(0)
   })
 
   it('renders SVG with typed ESM exports', async () => {
