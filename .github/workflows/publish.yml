@@ -54,7 +54,7 @@ jobs:
           INPUT_TAG="${{ github.event.inputs.tag || '' }}"
           NPM_TAG="${{ github.event.inputs.npm_tag }}"
           PACKAGE_NAME="$(node -p "require('./package.json').name")"
-          NPM_PACKAGE_NAME="${PACKAGE_NAME##*/}"
+          NPM_PACKAGE_NAME="$PACKAGE_NAME"
 
           if [ "$NPM_TAG" = "beta" ]; then
             NPM_LATEST_VERSION=""
@@ -113,7 +113,7 @@ jobs:
           echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
           echo "version=$PUBLISH_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare unscoped NPM package name
+      - name: Prepare NPM package metadata
         run: npm run publish:prepare
         env:
           PUBLISH_VERSION: ${{ steps.release.outputs.version }}

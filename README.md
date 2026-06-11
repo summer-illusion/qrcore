@@ -5,13 +5,13 @@ Modern QR Code generator built on the proven `soldair/node-qrcode` core, with ty
 ## Install
 
 ```sh
-npm install qrcore
+npm install @sansenjian/qrcore
 ```
 
 ## API
 
 ```ts
-import { toString, toBuffer, create } from 'qrcore'
+import { toString, toBuffer, create } from '@sansenjian/qrcore'
 
 const svg = await toString('hello qrcore', { type: 'svg' })
 const png = await toBuffer('hello qrcore', { type: 'png' })
@@ -21,7 +21,7 @@ const data = create('hello qrcore')
 CommonJS is supported too:
 
 ```js
-const qrcode = require('qrcore')
+const qrcode = require('@sansenjian/qrcore')
 
 qrcode.toString('hello cjs', { type: 'terminal' }).then(console.log)
 ```
@@ -63,7 +63,7 @@ git push origin main --tags
 
 The `Auto Bump Version` GitHub Actions workflow bumps the main branch version after non-bot pushes to `main`, refreshes `package-lock.json`, and prepends `CHANGELOG.md`.
 
-Publishing is handled by the manual `Publish Package` GitHub Actions workflow. It normalizes the package name to the unscoped npm name, computes `beta` prerelease versions such as `0.4.1-beta.<run>.<attempt>`, then reruns the full gate before `npm publish --provenance`.
+Publishing is handled by the manual `Publish Package` GitHub Actions workflow. It keeps the scoped npm package name, computes `beta` prerelease versions such as `0.4.1-beta.<run>.<attempt>`, then reruns the full gate before `npm publish --provenance`.
 
 ## Upstream Lineage
 
