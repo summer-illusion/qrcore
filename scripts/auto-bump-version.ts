@@ -25,9 +25,9 @@ if (bumpType !== 'patch' && bumpType !== 'minor') {
   throw new Error(`Unsupported version bump type: ${bumpType}`)
 }
 
-console.log(`Bumping qrcore ${bumpType} version...`)
-
 const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as PackageMetadata
+console.log(`Bumping ${String(pkg.name ?? 'package')} ${bumpType} version...`)
+
 const oldVersion = pkg.version
 const newVersion =
   bumpType === 'minor'

@@ -56,7 +56,6 @@ jobs:
           INPUT_CHANNEL="${{ github.event.inputs.channel || 'auto' }}"
           CHANNEL="$INPUT_CHANNEL"
           PACKAGE_NAME="$(node -p "require('./package.json').name")"
-          NPM_PACKAGE_NAME="${PACKAGE_NAME##*/}"
 
           if [ "$CHANNEL" = "auto" ]; then
             if [ -n "$INPUT_TAG" ] || [[ "$GITHUB_REF" == refs/tags/v* ]]; then
@@ -77,13 +76,13 @@ jobs:
             MAIN_VERSION=""
             NPM_TAG="beta"
 
-            if NPM_LATEST_VERSION=$(npm view "$NPM_PACKAGE_NAME@latest" version 2>/dev/null); then
+            if NPM_LATEST_VERSION=$(npm view "$PACKAGE_NAME@latest" version 2>/dev/null); then
               echo "npm latest version: $NPM_LATEST_VERSION"
             else
-              echo "Unable to read npm latest version for $NPM_PACKAGE_NAME. Falling back to package.json version."
+              echo "Unable to read npm latest version for $PACKAGE_NAME. Falling back to package.json version."
             fi
 
-            if NPM_BETA_VERSION=$(npm view "$NPM_PACKAGE_NAME@beta" version 2>/dev/null); then
+            if NPM_BETA_VERSION=$(npm view "$PACKAGE_NAME@beta" version 2>/dev/null); then
               echo "npm beta version: $NPM_BETA_VERSION"
             else
               echo "Unable to read npm beta version for $PACKAGE_NAME. Falling back to local/latest versions."
@@ -179,7 +178,7 @@ jobs:
             exit 1
           fi
 
-      - name: Prepare unscoped NPM package name
+      - name: Prepare NPM package metadata
         run: npm run publish:prepare
         env:
           PUBLISH_VERSION: ${{ steps.release.outputs.version }}

@@ -31,7 +31,7 @@ function writeJson(path: string, value: unknown): void {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`)
 }
 
-export function getUnscopedPackageName(packageName: string): string {
+export function getPublishPackageName(packageName: string): string {
   if (!packageName) {
     throw new Error('package.json name is required before publishing.')
   }
@@ -43,15 +43,15 @@ export function getUnscopedPackageName(packageName: string): string {
     throw new Error(`Invalid scoped package name: ${packageName}`)
   }
 
-  return packageName.slice(separatorIndex + 1)
+  return packageName
 }
 
-export function prepareUnscopedNpmPublish(options: PrepareOptions = {}): void {
+export function prepareNpmPublishMetadata(options: PrepareOptions = {}): void {
   const packagePath = options.packagePath ?? 'package.json'
   const lockPath = options.lockPath ?? 'package-lock.json'
   const pkg = readJson<PackageMetadata>(packagePath)
   const currentName = pkg.name ?? ''
-  const publishName = getUnscopedPackageName(currentName)
+  const publishName = getPublishPackageName(currentName)
   const publishVersion = options.version?.trim()
 
   if (pkg.name !== publishName) {
@@ -95,13 +95,7 @@ export function prepareUnscopedNpmPublish(options: PrepareOptions = {}): void {
     writeJson(lockPath, lock)
   }
 
-  if (currentName === publishName) {
-    console.log(`NPM publish name is already unscoped: ${publishName}`)
-  } else {
-    console.log(
-      `Prepared unscoped NPM publish name: ${currentName} -> ${publishName}`,
-    )
-  }
+  console.log(`Prepared NPM publish package: ${publishName}`)
 
   if (publishVersion) {
     console.log(`Prepared NPM publish version: ${publishVersion}`)
@@ -113,5 +107,5 @@ const isDirectRun =
   pathToFileURL(process.argv[1]).href === import.meta.url
 
 if (isDirectRun) {
-  prepareUnscopedNpmPublish({ version: process.env.PUBLISH_VERSION })
+  prepareNpmPublishMetadata({ version: process.env.PUBLISH_VERSION })
 }
