@@ -5,8 +5,8 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
-  getUnscopedPackageName,
-  prepareUnscopedNpmPublish,
+  getPublishPackageName,
+  prepareNpmPublishMetadata,
 } from '../scripts/prepare-npm-publish.ts'
 
 function readJson<T>(path: string): T {
@@ -14,15 +14,15 @@ function readJson<T>(path: string): T {
 }
 
 describe('prepare npm publish metadata', () => {
-  it('strips npm scopes from package names', () => {
-    expect(getUnscopedPackageName('@summer-illusion/qrcore')).toBe('qrcore')
-    expect(getUnscopedPackageName('qrcore')).toBe('qrcore')
-    expect(() => getUnscopedPackageName('@summer-illusion')).toThrow(
+  it('keeps scoped package names for npm publish', () => {
+    expect(getPublishPackageName('@qrcore/core')).toBe('@qrcore/core')
+    expect(getPublishPackageName('qrcore')).toBe('qrcore')
+    expect(() => getPublishPackageName('@qrcore')).toThrow(
       'Invalid scoped package name',
     )
   })
 
-  it('normalizes package and lockfile root names for npm publish', () => {
+  it('normalizes lockfile root name and publish version', () => {
     const dir = mkdtempSync(join(tmpdir(), 'qrcore-publish-'))
     const packagePath = join(dir, 'package.json')
     const lockPath = join(dir, 'package-lock.json')
@@ -30,35 +30,35 @@ describe('prepare npm publish metadata', () => {
     try {
       writeFileSync(
         packagePath,
-        JSON.stringify({ name: '@summer-illusion/qrcore', version: '1.0.0' }),
+        JSON.stringify({ name: '@qrcore/core', version: '1.0.0' }),
       )
       writeFileSync(
         lockPath,
         JSON.stringify({
-          name: '@summer-illusion/qrcore',
+          name: 'qrcore',
           version: '1.0.0',
           packages: {
             '': {
-              name: '@summer-illusion/qrcore',
+              name: 'qrcore',
               version: '1.0.0',
             },
           },
         }),
       )
 
-      prepareUnscopedNpmPublish({
+      prepareNpmPublishMetadata({
         packagePath,
         lockPath,
         version: '1.0.1-beta.12.1',
       })
 
       expect(readJson<{ name: string; version: string }>(packagePath)).toEqual({
-        name: 'qrcore',
+        name: '@qrcore/core',
         version: '1.0.1-beta.12.1',
       })
       expect(readJson<{ name: string; version: string }>(lockPath)).toEqual(
         expect.objectContaining({
-          name: 'qrcore',
+          name: '@qrcore/core',
           version: '1.0.1-beta.12.1',
         }),
       )
@@ -67,7 +67,7 @@ describe('prepare npm publish metadata', () => {
           lockPath,
         ).packages[''],
       ).toEqual({
-        name: 'qrcore',
+        name: '@qrcore/core',
         version: '1.0.1-beta.12.1',
       })
     } finally {

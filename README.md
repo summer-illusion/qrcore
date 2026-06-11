@@ -5,13 +5,13 @@ Modern QR Code generator built on the proven `soldair/node-qrcode` core, with ty
 ## Install
 
 ```sh
-npm install qrcore
+npm install @qrcore/core
 ```
 
 ## API
 
 ```ts
-import { toString, toBuffer, create } from 'qrcore'
+import { toString, toBuffer, create } from '@qrcore/core'
 
 const svg = await toString('hello qrcore', { type: 'svg' })
 const png = await toBuffer('hello qrcore', { type: 'png' })
@@ -21,7 +21,7 @@ const data = create('hello qrcore')
 CommonJS is supported too:
 
 ```js
-const qrcode = require('qrcore')
+const qrcode = require('@qrcore/core')
 
 qrcode.toString('hello cjs', { type: 'terminal' }).then(console.log)
 ```
@@ -63,7 +63,7 @@ git push origin main --tags
 
 The `Auto Bump Version` GitHub Actions workflow bumps patch versions on `dev`, bumps the next minor release line on `main`, refreshes `package-lock.json`, and prepends `CHANGELOG.md`.
 
-Publishing is handled by the manual `Publish Package` GitHub Actions workflow. Its `auto` channel publishes `dev` as `beta` and `main` or version tags as `latest`, keeps the package name as the unscoped `qrcore`, computes `beta` prerelease versions such as `0.4.1-beta.<run>.<attempt>`, then reruns the full gate before `npm publish --provenance`.
+Publishing is handled by the manual `Publish Package` GitHub Actions workflow. Its `auto` channel publishes `dev` as `beta` and `main` or version tags as `latest`, keeps the package name as the scoped `@qrcore/core`, computes `beta` prerelease versions such as `0.4.1-beta.<run>.<attempt>`, then reruns the full gate before `npm publish --provenance`.
 
 ## Upstream Lineage
 

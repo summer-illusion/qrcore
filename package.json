@@ -1,5 +1,5 @@
 {
-  "name": "qrcore",
+  "name": "@qrcore/core",
   "version": "0.4.5",
   "description": "Modern QR Code generator with typed ESM, CommonJS, and CLI support.",
   "type": "module",
