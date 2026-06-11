@@ -71,6 +71,9 @@ jobs:
             fi
           fi
 
+      - name: Prepare unscoped NPM package name
+        run: npm run publish:prepare
+
       - name: Lint
         run: npm run lint
 
@@ -90,6 +93,6 @@ jobs:
         run: npm run pack:dry
 
       - name: Publish to NPM
-        run: npm publish --access public --tag ${{ github.event.inputs.npm_tag }} --provenance
+        run: npm publish --tag ${{ github.event.inputs.npm_tag }} --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

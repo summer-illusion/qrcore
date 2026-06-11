@@ -51,6 +51,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "pack:dry": "npm pack --dry-run",
+    "publish:prepare": "tsx scripts/prepare-npm-publish.ts",
     "prepare": "husky",
     "version:bump": "tsx scripts/auto-bump-version.ts",
     "release": "tsx scripts/bump-version.ts",
