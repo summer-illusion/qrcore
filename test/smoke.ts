@@ -3,14 +3,18 @@ import { createRequire } from 'node:module'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 const require = createRequire(import.meta.url)
+const distIndexUrl = pathToFileURL(join(process.cwd(), 'dist/index.mjs')).href
+const distCjsPath = join(process.cwd(), 'dist/index.cjs')
+const distCliPath = join(process.cwd(), 'dist/cli.mjs')
 
-const esm = await import('../dist/index.mjs')
-const cjs = require('../dist/index.cjs')
+const esm = await import(distIndexUrl)
+const cjs = require(distCjsPath)
 
 assert.equal(typeof esm.toString, 'function')
 assert.equal(typeof cjs.toString, 'function')
@@ -25,7 +29,7 @@ const dir = await mkdtemp(join(tmpdir(), 'qrcore-'))
 try {
   const output = join(dir, 'cli.svg')
   const { stdout } = await execFileAsync(process.execPath, [
-    'dist/cli.mjs',
+    distCliPath,
     '-t',
     'svg',
     '-o',

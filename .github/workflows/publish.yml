@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.inputs.tag || 'main' }}
+          ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-tags: true
           fetch-depth: 0
 
@@ -46,30 +46,77 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate release ref
+      - name: Determine release version
+        id: release
         shell: bash
         run: |
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
           INPUT_TAG="${{ github.event.inputs.tag || '' }}"
+          NPM_TAG="${{ github.event.inputs.npm_tag }}"
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          NPM_PACKAGE_NAME="${PACKAGE_NAME##*/}"
 
-          if [[ "${{ github.event.inputs.npm_tag }}" = "latest" && "$PACKAGE_VERSION" == *-* ]]; then
-            echo "Latest releases must use a stable version, got $PACKAGE_VERSION."
+          if [ "$NPM_TAG" = "beta" ]; then
+            NPM_LATEST_VERSION=""
+            NPM_BETA_VERSION=""
+            MAIN_VERSION=""
+
+            if NPM_LATEST_VERSION=$(npm view "$NPM_PACKAGE_NAME@latest" version 2>/dev/null); then
+              echo "npm latest version: $NPM_LATEST_VERSION"
+            else
+              echo "Unable to read npm latest version for $NPM_PACKAGE_NAME. Falling back to package.json version."
+            fi
+
+            if NPM_BETA_VERSION=$(npm view "$NPM_PACKAGE_NAME@beta" version 2>/dev/null); then
+              echo "npm beta version: $NPM_BETA_VERSION"
+            else
+              echo "Unable to read npm beta version for $PACKAGE_NAME. Falling back to local/latest versions."
+            fi
+
+            if git fetch origin main:refs/remotes/origin/main && MAIN_VERSION=$(git show origin/main:package.json | node -e "const fs = require('node:fs'); console.log(JSON.parse(fs.readFileSync(0, 'utf8')).version)"); then
+              echo "main branch version: $MAIN_VERSION"
+            else
+              echo "Unable to read origin/main package version. Falling back to local/npm versions."
+            fi
+
+            PUBLISH_VERSION=$(tsx scripts/compute-release-version.ts "$PACKAGE_VERSION" "$NPM_LATEST_VERSION" "$NPM_BETA_VERSION" "$MAIN_VERSION")
+          else
+            PUBLISH_VERSION="$PACKAGE_VERSION"
+          fi
+
+          if [[ "$NPM_TAG" = "latest" && "$PUBLISH_VERSION" == *-* ]]; then
+            echo "Latest releases must use a stable version, got $PUBLISH_VERSION."
+            exit 1
+          fi
+
+          if [ "$NPM_TAG" = "latest" ] && [ -z "$INPUT_TAG" ] && [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Latest releases without an explicit tag must run from refs/heads/main."
             exit 1
           fi
 
           if [ -n "$INPUT_TAG" ]; then
             TAG_VERSION="${INPUT_TAG#v}"
-            if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-              echo "Release tag $INPUT_TAG does not match package.json version $PACKAGE_VERSION."
+            if [ "$NPM_TAG" = "latest" ] && [ "$TAG_VERSION" != "$PUBLISH_VERSION" ]; then
+              echo "Release tag $INPUT_TAG does not match package.json version $PUBLISH_VERSION."
               exit 1
             fi
 
             git fetch origin main:refs/remotes/origin/main
-            if ! git merge-base --is-ancestor "$INPUT_TAG" origin/main; then
+            if [ "$NPM_TAG" = "latest" ] && ! git merge-base --is-ancestor "$INPUT_TAG" origin/main; then
               echo "Release tag $INPUT_TAG must point to a commit contained in origin/main."
               exit 1
             fi
           fi
+
+          echo "npm dist-tag: $NPM_TAG"
+          echo "Version to publish: $PUBLISH_VERSION"
+          echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$PUBLISH_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare unscoped NPM package name
+        run: npm run publish:prepare
+        env:
+          PUBLISH_VERSION: ${{ steps.release.outputs.version }}
 
       - name: Lint
         run: npm run lint
@@ -90,6 +137,6 @@ jobs:
         run: npm run pack:dry
 
       - name: Publish to NPM
-        run: npm publish --access public --tag ${{ github.event.inputs.npm_tag }} --provenance
+        run: npm publish --tag ${{ steps.release.outputs.npm_tag }} --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

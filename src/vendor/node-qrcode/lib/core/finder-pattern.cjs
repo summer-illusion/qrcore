@@ -1,22 +1,12 @@
-const getSymbolSize = require('./utils.cjs').getSymbolSize
-const FINDER_PATTERN_SIZE = 7
-
-/**
- * Returns an array containing the positions of each finder pattern.
- * Each array's element represent the top-left point of the pattern as (x, y) coordinates
- *
- * @param  {Number} version QR Code version
- * @return {Array}          Array of coordinates
- */
-exports.getPositions = function getPositions (version) {
-  const size = getSymbolSize(version)
-
-  return [
-    // top-left
-    [0, 0],
-    // top-right
-    [size - FINDER_PATTERN_SIZE, 0],
-    // bottom-left
-    [0, size - FINDER_PATTERN_SIZE]
-  ]
+function loadImplementation() {
+  try {
+    return require('./finder-pattern.ts')
+  } catch (error) {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') throw error
+    return require('./finder-pattern.impl.cjs')
+  }
 }
+
+const implementation = loadImplementation()
+
+module.exports = implementation.default || implementation

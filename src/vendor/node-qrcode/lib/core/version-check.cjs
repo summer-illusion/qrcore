@@ -1,9 +1,12 @@
-/**
- * Check if QR Code version is valid
- *
- * @param  {Number}  version QR Code version
- * @return {Boolean}         true if valid version, false otherwise
- */
-exports.isValid = function isValid (version) {
-  return !isNaN(version) && version >= 1 && version <= 40
+function loadImplementation() {
+  try {
+    return require('./version-check.ts')
+  } catch (error) {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') throw error
+    return require('./version-check.impl.cjs')
+  }
 }
+
+const implementation = loadImplementation()
+
+module.exports = implementation.default || implementation

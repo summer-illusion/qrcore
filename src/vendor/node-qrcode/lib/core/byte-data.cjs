@@ -1,30 +1,12 @@
-const Mode = require('./mode.cjs')
-
-function ByteData (data) {
-  this.mode = Mode.BYTE
-  if (typeof (data) === 'string') {
-    this.data = new TextEncoder().encode(data)
-  } else {
-    this.data = new Uint8Array(data)
+function loadImplementation() {
+  try {
+    return require('./byte-data.ts')
+  } catch (error) {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') throw error
+    return require('./byte-data.impl.cjs')
   }
 }
 
-ByteData.getBitsLength = function getBitsLength (length) {
-  return length * 8
-}
+const implementation = loadImplementation()
 
-ByteData.prototype.getLength = function getLength () {
-  return this.data.length
-}
-
-ByteData.prototype.getBitsLength = function getBitsLength () {
-  return ByteData.getBitsLength(this.data.length)
-}
-
-ByteData.prototype.write = function (bitBuffer) {
-  for (let i = 0, l = this.data.length; i < l; i++) {
-    bitBuffer.put(this.data[i], 8)
-  }
-}
-
-module.exports = ByteData
+module.exports = implementation.default || implementation

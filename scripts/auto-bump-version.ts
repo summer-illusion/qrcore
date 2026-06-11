@@ -1,18 +1,31 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 
-import { computeMainVersion } from './compute-release-version.mjs'
-import { generateChangelog } from './generate-changelog.mjs'
+import { computeMainVersion } from './compute-release-version.ts'
+import { generateChangelog } from './generate-changelog.ts'
+
+type PackageMetadata = {
+  version: string
+  [key: string]: unknown
+}
+
+type PackageLock = {
+  version?: string
+  packages?: Record<string, { version?: string }>
+  [key: string]: unknown
+}
 
 console.log('Bumping qrcore version...')
 
-const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as PackageMetadata
 const oldVersion = pkg.version
 const newVersion = computeMainVersion(oldVersion)
 
 pkg.version = newVersion
 writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
 
-const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'))
+const lock = JSON.parse(
+  readFileSync('package-lock.json', 'utf8'),
+) as PackageLock
 lock.version = newVersion
 if (lock.packages?.['']) {
   lock.packages[''].version = newVersion

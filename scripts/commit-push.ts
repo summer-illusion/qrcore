@@ -1,4 +1,4 @@
-import { run } from './script-utils.mjs'
+import { run } from './script-utils.ts'
 
 const message = process.argv.slice(2).join(' ').trim()
 

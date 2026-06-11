@@ -1,2 +1,12 @@
-/* global QRCode */
-QRCode.toSJIS = require('./to-sjis.cjs')
+function loadImplementation() {
+  try {
+    return require('./to-sjis-browser.ts')
+  } catch (error) {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') throw error
+    return require('./to-sjis-browser.impl.cjs')
+  }
+}
+
+const implementation = loadImplementation()
+
+module.exports = implementation.default || implementation

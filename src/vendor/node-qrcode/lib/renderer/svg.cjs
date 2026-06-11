@@ -1,19 +1,12 @@
-const svgTagRenderer = require('./svg-tag.cjs')
-
-exports.render = svgTagRenderer.render
-
-exports.renderToFile = function renderToFile (path, qrData, options, cb) {
-  if (typeof cb === 'undefined') {
-    cb = options
-    options = undefined
+function loadImplementation() {
+  try {
+    return require('./svg.ts')
+  } catch (error) {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') throw error
+    return require('./svg.impl.cjs')
   }
-
-  const fs = require('fs')
-  const svgTag = exports.render(qrData, options)
-
-  const xmlStr = '<?xml version="1.0" encoding="utf-8"?>' +
-    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' +
-    svgTag
-
-  fs.writeFile(path, xmlStr, cb)
 }
+
+const implementation = loadImplementation()
+
+module.exports = implementation.default || implementation
