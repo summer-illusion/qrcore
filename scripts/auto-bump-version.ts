@@ -1,6 +1,6 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 
-import { computeMainVersion } from './compute-release-version.ts'
+import { computeMainVersion } from './compute-release-version.mjs'
 import { generateChangelog } from './generate-changelog.ts'
 
 type PackageMetadata = {

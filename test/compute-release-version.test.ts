@@ -4,7 +4,7 @@ import {
   computeBetaVersion,
   computeMainVersion,
   parseVersion,
-} from '../scripts/compute-release-version.ts'
+} from '../scripts/compute-release-version.mjs'
 
 describe('release version computation', () => {
   it('computes the next main version line', () => {
